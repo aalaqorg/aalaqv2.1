@@ -35,8 +35,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({ story, onClose }) => {
                     <div className="px-6 md:px-16 py-12 -mt-12 relative z-20">
                         <div className="bg-white rounded-[2rem] p-8 md:p-12 shadow-xl border border-gray-100">
                             <div className="prose prose-lg font-serif text-gray-800 leading-loose">
-                                {(story.storyContent || '').split('
-').map((p, i) => (
+                                {(story.storyContent || '').split('\n').map((p, i) => (
                                     <p key={i}>{p}</p>
                                 ))}
                             </div>
