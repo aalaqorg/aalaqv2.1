@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String      @id @default(uuid())
+  username         String      @unique
+  email            String?     @unique
+  password         String?
+  rewardPoints     Int         @default(0)
+  huroofCompleted  Int         @default(0)
+  gamesPlayed      Json?       // gameId -> count
+  streak           Int         @default(0)
+  lastActivityDate DateTime?   @default(now())
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  stories          Story[]
+  bookmarks        Bookmark[]
+  votes            Vote[]
+  ratings          Rating[]
+  sentMessages     Message[]   @relation("SentMessages")
+  receivedMessages Message[]   @relation("ReceivedMessages")
+}
+
+model Story {
+  id           String      @id @default(uuid())
+  title        String
+  content      String
+  references   Json?       // array of {source, text}
+  moral        String
+  genre        String
+  aiGenerated  Boolean     @default(true)
+  timestamp    DateTime    @default(now())
+  
+  authorId     String
+  author       User        @relation(fields: [authorId], references: [id])
+
+  remixedFromId String?
+  remixedFrom   Story?      @relation("Remixes", fields: [remixedFromId], references: [id])
+  remixes       Story[]     @relation("Remixes")
+
+  votes        Vote[]
+  bookmarks    Bookmark[]
+  ratings      Rating[]
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Vote {
+  id      String @id @default(uuid())
+  userId  String
+  storyId String
+  user    User   @relation(fields: [userId], references: [id])
+  story   Story  @relation(fields: [storyId], references: [id])
+
+  @@unique([userId, storyId])
+}
+
+model Bookmark {
+  id      String @id @default(uuid())
+  userId  String
+  storyId String
+  user    User   @relation(fields: [userId], references: [id])
+  story   Story  @relation(fields: [storyId], references: [id])
+
+  @@unique([userId, storyId])
+}
+
+model Rating {
+  id      String @id @default(uuid())
+  userId  String
+  storyId String
+  score   Int    // 1-5
+  user    User   @relation(fields: [userId], references: [id])
+  story   Story  @relation(fields: [storyId], references: [id])
+
+  @@unique([userId, storyId])
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String
+  timestamp   DateTime @default(now())
+  read        Boolean  @default(false)
+
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
